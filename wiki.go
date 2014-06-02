@@ -3,13 +3,20 @@ package main
 import (
   "fmt"
   "io/ioutil"
+  "net/http"
 )
 
 func main() {
-  p1 := &Page{Title: "TestPage", Body: []byte("This is a simple page.")}
-  p1.save()
-  p2, _ := loadPage("TestPage")
-  fmt.Println(string(p2.Body))
+  //p1 := &Page{Title: "TestPage", Body: []byte("This is a simple page.")}
+  //p1.save()
+  //p2, _ := loadPage("TestPage")
+  //fmt.Println(string(p2.Body))
+
+  //http.HandleFunc("/", handler)
+  //http.ListenAndServe(":8080", nil)
+
+  http.HandleFunc("/view/", viewHandler)
+  http.ListenAndServe(":8080", nil)
 }
 
 // Defining a struct to represent a single page
@@ -37,4 +44,19 @@ func loadPage(title string) (*Page, error) {
     return nil, err
   }
   return &Page{Title: title, Body: body}, nil
+}
+
+// A simple web server/request handler
+// when any request is sent it prints "Hi there, I love ____" where
+// _____ is anything after the / or "the world!" if the request is for the root
+func handler(w http.ResponseWriter, r *http.Request) {
+  path := r.URL.Path[1:]
+  if path == "" { path = "the world!" }
+  fmt.Fprintf(w, "Hi there, I love %s", path)
+}
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+  title := r.URL.Path[len("/view/"):]
+  p, _ := loadPage(title)
+  fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
